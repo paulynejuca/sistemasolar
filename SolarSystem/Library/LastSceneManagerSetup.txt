@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/SolarSystem/Scenes/Test/SpawnExample.unity
+- path: Assets/SolarSystem/Scenes/Test/GatheringExample.unity
   isLoaded: 1
   isActive: 1

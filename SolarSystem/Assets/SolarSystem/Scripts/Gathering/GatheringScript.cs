@@ -5,19 +5,27 @@ using UnityEngine;
 public class GatheringScript : MonoBehaviour {
 
     #region PUBLIC OBJECTS
-    public InventoryScript.CollectibleType collectibleType;
-    public int amount = 10;
+    public InventoryScript.CollectibleType collectibleType;// Tipo de coletável
+    public int startAmount = 10;// Quantiade inicial máxima que o jogador pode coletar
     #endregion
 
     #region PRIVATE OBJECTS
-    private bool gathering = false;
-    private float currentTime = 0f;
-    private InventoryScript inventoryScript;
+    private int amount = 0;//Quantidade restante que o jogador pode coletar
+    private bool gathering = false;// Se está coletano ou não
+    private float currentTime = 0f;// Auxiliar para contar o tempo para coletar -1
+    private InventoryScript inventoryScript;// Referência para o script que armazena os valores coletados de cada tipo de coletável
+    private ParticleSystem particle;// Sistema de partículas do objeto
+    private ParticleSystem.EmissionModule particleEmission;// Módulo de emissão das partículas do objeto
+    private float startRateOverTime = 0;// Rate de emissão de partículas inicial
     #endregion
 
     #region PRIVATE METHODS
     private void Start() {
         inventoryScript = InventoryScript.Instance;
+        particle = GetComponent<ParticleSystem>();
+        particleEmission = particle.emission;
+        amount = startAmount;
+        startRateOverTime = particleEmission.rateOverTime.constant;
     }
 
     private void Update() {
@@ -29,7 +37,9 @@ public class GatheringScript : MonoBehaviour {
             } else {
                 amount -= 1;
                 currentTime = 0f;
-                // Acabou?
+                // Reduz o tamanho da nuvem a medida que o jogador coleta
+                particleEmission.rateOverTime = Percent(amount) * startRateOverTime;
+                // Acabou? Se acabou a nuvem é desativada
                 if (amount < 0) {
                     Debug.Log("Volume esgotado");
                     gathering = false;
@@ -43,12 +53,19 @@ public class GatheringScript : MonoBehaviour {
         }
     }
 
+    // Calcula a porcentagem de um valor v
+    private float Percent(float v){
+        return (v / 100) * v;
+    }
+
+    // Se oplayer entra no trigger, então a coleta inicia
     private void OnTriggerEnter(Collider other) {
         if (other.gameObject.CompareTag("Player")) {
             gathering = true;
         }
     }
 
+    // Se o player sai do trigger a coleta para
     private void OnTriggerExit(Collider other) {
         if (other.gameObject.CompareTag("Player")) {
             gathering = false;
