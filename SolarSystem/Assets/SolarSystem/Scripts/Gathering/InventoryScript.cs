@@ -1,23 +1,44 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Classe que controla o inventário de itens coletados pelo jogaor.
+/// </summary>
 public class InventoryScript : MonoBehaviour {
 
-    // Tipos de coletáveis
-    public enum CollectibleType {
-        Gas, Metal, Rock
+    #region ENUMS
+    /// <summary>
+    /// Enum dos elementos que são metais
+    /// </summary>
+    public enum MetalType {
+        Iron, Nickel, Aluminum, Magnesium, Potassium, Sodium, Calcium
     }
 
-    #region PUBLIC OBJECTS
-    public Text gasText;// Text que exibe a quantidade de gás na interface
-    public Text metalText;// Text que exibe a quantidade de metal na interface
-    public Text rockText;// Text que exibe a quantidade de rochas na interface
+    /// <summary>
+    /// Enum dos elementos que são gases
+    /// </summary>
+    public enum GasType {
+        Oxygen, Hydrogen, Helium, Methane
+    }
+
+    /// <summary>
+    /// Enum dos elementos que são rochas
+    /// </summary>
+    public enum RockType {
+        Basalt, Silicon, Quartz, Cobalt
+    }
     #endregion
 
-    #region PRIVATE OBJECTS
-    private Dictionary<CollectibleType, int> collectibles;// Dictionary que guarda todos os coletáveis e suas quantidades
+    #region SERIALIZED FIELDS
+    //public Text gasText;// Text que exibe a quantidade de gás na interface
+    //public Text metalText;// Text que exibe a quantidade de metal na interface
+    //public Text rockText;// Text que exibe a quantidade de rochas na interface
+    #endregion
+
+    #region PRIVATE FIELDS
+    private Dictionary<MetalType, int> metal;               // Dicionário que guarda os metais
+    private Dictionary<GasType, int> gas;                   // Dicionário que guarda os gases
+    private Dictionary<RockType, int> rock;                 // Dicionário que guarda as rochas
     #endregion
 
     #region SINGLETON
@@ -36,33 +57,120 @@ public class InventoryScript : MonoBehaviour {
 
     #region PRIVATE METHODS
     private void Start () {
-        collectibles = new Dictionary<CollectibleType, int> {
-            { CollectibleType.Gas, 0 },
-            { CollectibleType.Metal, 0 },
-            { CollectibleType.Rock, 0 }
+        metal = new Dictionary<MetalType, int> {
+            { MetalType.Aluminum, 0 },
+            { MetalType.Calcium, 0 },
+            { MetalType.Iron, 0 },
+            { MetalType.Magnesium, 0},
+            { MetalType.Nickel, 0},
+            { MetalType.Potassium, 0},
+            { MetalType.Sodium, 0}
+        };
+
+        gas = new Dictionary<GasType, int> {
+            { GasType.Helium, 0},
+            { GasType.Hydrogen, 0},
+            { GasType.Methane, 0},
+            { GasType.Oxygen, 0}
+        };
+
+        rock = new Dictionary<RockType, int> {
+            { RockType.Basalt, 0},
+            { RockType.Cobalt, 0},
+            { RockType.Quartz, 0},
+            { RockType.Silicon, 0}
         };
     }
     #endregion
 
     #region PUBLIC METHODS
     /// <summary>
-    /// Adiciona uma quantidade de um material ao inventário
+    /// Adiona um metal ao inventário
     /// </summary>
-    /// <param name="collectibleType">Tipo de coletável</param>
-    /// <param name="value">Quantidade recebida</param>
-    public void AddToInventory(CollectibleType collectibleType, int value) {
-        collectibles[collectibleType] += value;
+    /// <param name="metalType">Elemento metal</param>
+    /// <param name="amount">Quantidade</param>
+    public void AddMetal(MetalType metalType, int amount) {
+        metal[metalType] += amount;
+    }
 
-        switch (collectibleType) {
-            case CollectibleType.Gas: gasText.text = "Gas: " + collectibles[collectibleType]; break;
-            case CollectibleType.Metal: gasText.text = "Metal: " + collectibles[collectibleType]; break;
-            case CollectibleType.Rock: gasText.text = "Rock: " + collectibles[collectibleType]; break;
-        }
+    /// <summary>
+    /// Adiciona um gás ao inventário
+    /// </summary>
+    /// <param name="gasType">Elemento gás</param>
+    /// <param name="amount">Quantidade</param>
+    public void AddGas(GasType gasType, int amount) {
+        gas[gasType] += amount;
+    }
 
-        Debug.Log("Mais um adicionado ao inventário");
+    /// <summary>
+    /// Adiciona uma rocha ao inventário
+    /// </summary>
+    /// <param name="rockType">Tipo de rocha</param>
+    /// <param name="amount">Quantidade</param>
+    public void AddRock(RockType rockType, int amount) {
+        rock[rockType] += amount;
     }
     #endregion
 
     #region PUBLIC PROPERTIES
+    public int Aluminum {
+        get { return metal[MetalType.Aluminum]; }
+    }
+
+    public int Calcium {
+        get { return metal[MetalType.Calcium]; }
+    }
+
+    public int Iron {
+        get { return metal[MetalType.Iron]; }
+    }
+
+    public int Magnesium {
+        get { return metal[MetalType.Magnesium]; }
+    }
+
+    public int Nickel {
+        get { return metal[MetalType.Nickel]; }
+    }
+
+    public int Potassium {
+        get { return metal[MetalType.Potassium]; }
+    }
+
+    public int Sodium {
+        get { return metal[MetalType.Sodium]; }
+    }
+
+    public int Helium {
+        get { return gas[GasType.Helium];}
+    }
+
+    public int Hydrogen {
+        get { return gas[GasType.Hydrogen]; }
+    }
+
+    public int Methane {
+        get { return gas[GasType.Methane]; }
+    }
+
+    public int Oxygen {
+        get { return gas[GasType.Oxygen]; }
+    }
+
+    public int Basalt {
+        get { return rock[RockType.Basalt]; }
+    }
+
+    public int Cobalt {
+        get { return rock[RockType.Cobalt]; }
+    }
+
+    public int Quartz {
+        get { return rock[RockType.Quartz]; }
+    }
+
+    public int Silicon {
+        get { return rock[RockType.Silicon]; }
+    }
     #endregion
 }

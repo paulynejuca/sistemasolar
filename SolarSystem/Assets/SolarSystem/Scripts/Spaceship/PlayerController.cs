@@ -1,105 +1,120 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour {
-	public int secondsPerBurning = 1;
-	public float fuelPerBurn = 0.01f;
-	public float turnspeed = 5.0f;
-	public float speed = 5.0f;
-	public float strafeSpeed = 5.0f;
+    public float hoverHeight = 3F;
+    public float hoverHeightStrictness = 1F;
+    public float forwardThrust = 5000F;
+    public float backwardThrust = 2500F;
+    public float bankAmount = 0.1F;
+    public float bankSpeed = 0.2F;
+    public Vector3 bankAxis = new Vector3(-1F, 0F, 0F);
+    public float turnSpeed = 8000F;
 
-	private bool isAccelerating = false;
-	private float nextTime;
-	private float trueSpeed = 0.0f;
-	private Rigidbody rb;
-	//private GUIController guiController;
+    public Vector3 forwardDirection = new Vector3(1F, 0F, 0F);
 
+    public float mass = 5F;
 
-	void Start(){
-		rb = GetComponent<Rigidbody> ();
-		//guiController = GameObject.FindWithTag ("GameController").GetComponent<GUIController>();
-	}
+    // positional drag
+    public float sqrdSpeedThresholdForDrag = 25F;
+    public float superDrag = 2F;
+    public float fastDrag = 0.5F;
+    public float slowDrag = 0.01F;
 
-	void FixedUpdate () {
+    // angular drag
+    public float sqrdAngularSpeedThresholdForDrag = 5F;
+    public float superADrag = 32F;
+    public float fastADrag = 16F;
+    public float slowADrag = 0.1F;
 
-		float roll = Input.GetAxis("Roll");
-		float pitch = Input.GetAxis("Pitch");
-		float yaw = Input.GetAxis("Yaw");
-		Vector3 strafe = new Vector3(Input.GetAxis("Horizontal")*strafeSpeed*Time.deltaTime, Input.GetAxis("Vertical")*strafeSpeed*Time.deltaTime, 0);
+    public bool playerControl = true;
 
-		float power = Input.GetAxis("Power");
+    float bank = 0F;
 
-		//Truespeed controls
-		if (trueSpeed < 10 && trueSpeed > -3){
-			trueSpeed += power;
-		}
-		if (trueSpeed > 10){
-			trueSpeed = 9.99f;
+    private Rigidbody rb;
 
-		}
-		if (trueSpeed < -3){
-			trueSpeed = -2.99f;
-		}
-		if (Input.GetKey("backspace")){
-			isAccelerating = false;
-			trueSpeed = 0f;
-		}
+    private void Awake() {
+        rb = GetComponent <Rigidbody> ();
+    }
 
-		//Input Events
-		if(Input.GetButton("Roll")){
-			Debug.Log ("Rotacionando no Z");
-			burnFuel ();		
-		}
-		if(Input.GetButton("Yaw")){
-			Debug.Log ("Rotacionando no Y");
-			burnFuel ();		
-		}
-		if(Input.GetButton("Pitch")){
-			Debug.Log ("Rotacionando no X");
-			burnFuel ();		
-		}
-		if(Input.GetButton("Horizontal")){
-			Debug.Log ("Transladando no X");
-			burnFuel ();		
-		}
-		if(Input.GetButton("Vertical")){
-			Debug.Log ("Transladando no Y");
-			burnFuel ();		
-		}
-		if(Input.GetButton("Power")){
-			isAccelerating = true;
-			Debug.Log ("Força acionada");
-		}
-		if (Input.GetKeyDown("backspace")){
-			Debug.Log ("Foguetes desligados");
-		}
-			
-		if (isAccelerating) {
-			burnFuel ();
-		}
+    void SetPlayerControl(bool control) {
+        playerControl = control;
+    }
 
-		/*if (power > 0) {
-			burnFuel ();
-			Debug.Log ("Acelerando para frente");
-		} else if (power < 0) {
-			burnFuel ();
-			Debug.Log ("Acelerando para trás");
-		}*/
+    void Start() {
+        rb.mass = mass;
+        forwardDirection = transform.forward;
+    }
 
-		rb.AddRelativeTorque(pitch*turnspeed*Time.deltaTime, yaw*turnspeed*Time.deltaTime, roll*turnspeed*Time.deltaTime);
-		rb.AddRelativeForce(0,0,trueSpeed*speed*Time.deltaTime);
-		rb.AddRelativeForce(strafe);
-	}
-	private void burnFuel(){
-		/*if (guiController != null) {
-			if (Time.time >= nextTime) {
-				guiController.decreaseFuel (fuelPerBurn);
+    void FixedUpdate() {
+        if (Mathf.Abs(thrust) > 0.01F) {
+            if (rb.velocity.sqrMagnitude > sqrdSpeedThresholdForDrag)
+                rb.drag = fastDrag;
+            else
+                rb.drag = slowDrag;
+        }
+        else rb.drag = superDrag;
 
-				nextTime = Mathf.FloorToInt (Time.time) + secondsPerBurning;
-			}
-		} else {
-			Debug.Log ("Add the gameController");
-		}*/
-	}
+        if (Mathf.Abs(turn) > 0.01F) {
+            if (rb.angularVelocity.sqrMagnitude > sqrdAngularSpeedThresholdForDrag)
+                rb.angularDrag = fastADrag;
+            else
+                rb.angularDrag = slowADrag;
+        } else
+            rb.angularDrag = superADrag;
+
+        transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, hoverHeight, transform.position.z), hoverHeightStrictness);
+
+        float amountToBank = rb.angularVelocity.y * bankAmount;
+
+        bank = Mathf.Lerp(bank, amountToBank, bankSpeed);
+
+        Vector3 rotation = transform.rotation.eulerAngles;
+        rotation *= Mathf.Deg2Rad;
+        rotation.x = 0F;
+        rotation.z = 0F;
+        rotation += bankAxis * bank;
+        //transform.rotation = Quaternion.EulerAngles(rotation);
+        rotation *= Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(rotation);
+    }
+
+    float thrust = 0F;
+    float turn = 0F;
+
+    void Thrust(float t) {
+        thrust = Mathf.Clamp(t, -1F, 1F);
+    }
+
+    void Turn(float t) {
+        turn = Mathf.Clamp(t, -1F, 1F) * turnSpeed;
+    }
+
+    bool thrustGlowOn = false;
+
+    void Update() {
+        float theThrust = thrust;
+
+        if (playerControl) {
+            thrust = Input.GetAxis("Vertical");
+            turn = Input.GetAxis("Horizontal") * turnSpeed;
+        }
+
+        if (thrust > 0F) {
+            theThrust *= forwardThrust;
+            if (!thrustGlowOn) {
+                thrustGlowOn = !thrustGlowOn;
+                BroadcastMessage("SetThrustGlow", thrustGlowOn, SendMessageOptions.DontRequireReceiver);
+            }
+        } else {
+            theThrust *= backwardThrust;
+            if (thrustGlowOn) {
+                thrustGlowOn = !thrustGlowOn;
+                BroadcastMessage("SetThrustGlow", thrustGlowOn, SendMessageOptions.DontRequireReceiver);
+            }
+        }
+
+        rb.AddRelativeTorque(Vector3.up * turn * Time.deltaTime);
+        rb.AddRelativeForce(forwardDirection * theThrust * Time.deltaTime);
+    }
 }
